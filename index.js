@@ -124,19 +124,31 @@ app.get('/treatment', (req, res) => {
 //get treatment detail
 app.get('/treatment-details/:treatmentID', (req, res) => {
     const treatmentID = req.params.treatmentID;
-    
+
     const query = `
     SELECT 
-        id, 
-        treatmentID, 
-        timestamp, 
-        next_treatment_date, 
-        dispensing_medicine, 
-        latest_treatment_detail
+        td.id AS treatment_detail_id,
+        td.treatmentID,
+        td.timestamp,
+        td.next_treatment_date,
+        td.dispensing_medicine,
+        td.latest_treatment_detail,
+        t.status,
+        t.start_treatment_date,
+        t.last_treated_date,
+        t.short_detail,
+        p.name AS patient_name,
+        d.name AS doctor_name
     FROM 
-        treatment_detail
+        treatment_detail td
+    JOIN 
+        treatment t ON td.treatmentID = t.id
+    JOIN 
+        patient p ON t.patientID = p.id
+    JOIN 
+        doctor d ON t.doctorID = d.id
     WHERE 
-        treatmentID = ?;
+        td.treatmentID = ?;
     `;
 
     // Execute the query with the provided treatmentID
@@ -155,7 +167,7 @@ app.get('/treatment-details/:treatmentID', (req, res) => {
 });
 
 //get edit treatment detail
-app.get('/treatment-detail/:id', (req, res) => {
+app.get('/treatment-detail-edit/:id', (req, res) => {
     const treatmentDetailID = req.params.id;
 
     const query = `SELECT * FROM treatment_detail WHERE id = ?`;
