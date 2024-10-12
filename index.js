@@ -155,9 +155,90 @@ app.get('/treatment-details/:treatmentID', (req, res) => {
 });
 
 //get edit treatment detail
+app.get('/treatment-detail/:id', (req, res) => {
+    const treatmentDetailID = req.params.id;
+
+    const query = `SELECT * FROM treatment_detail WHERE id = ?`;
+
+    db.get(query, [treatmentDetailID], (err, row) => {
+        if (err) {
+            console.error('Error retrieving treatment detail:', err.message);
+            res.status(500).json({ error: err.message });
+            return;
+        }
+
+        if (row) {
+            res.json(row);
+        } else {
+            res.status(404).json({ message: 'Treatment detail not found' });
+        }
+    });
+});
 //get edit treatment
+app.get('/treatment/:id', (req, res) => {
+    const treatmentID = req.params.id;
+
+    const query = `SELECT * FROM treatment WHERE id = ?`;
+
+    db.get(query, [treatmentID], (err, row) => {
+        if (err) {
+            console.error('Error retrieving treatment:', err.message);
+            res.status(500).json({ error: err.message });
+            return;
+        }
+
+        if (row) {
+            res.json(row);
+        } else {
+            res.status(404).json({ message: 'Treatment not found' });
+        }
+    });
+});
 //get edit patient
+app.get('/patient/:id', (req, res) => {
+    const patientID = req.params.id;
+
+    const query = `SELECT * FROM patient WHERE id = ?`;
+
+    db.get(query, [patientID], (err, row) => {
+        if (err) {
+            console.error('Error retrieving patient:', err.message);
+            res.status(500).json({ error: err.message });
+            return;
+        }
+
+        if (row) {
+            res.json(row);
+        } else {
+            res.status(404).json({ message: 'Patient not found' });
+        }
+    });
+});
+
 //get edit doctor
+app.get('/doctor/:id', (req, res) => {
+    const doctorID = req.params.id;
+
+    const query = `SELECT * FROM doctor WHERE id = ?`;
+
+    db.get(query, [doctorID], (err, row) => {
+        if (err) {
+            console.error('Error retrieving doctor:', err.message);
+            res.status(500).json({ error: err.message });
+            return;
+        }
+
+        if (row) {
+            res.json(row);
+        } else {
+            res.status(404).json({ message: 'Doctor not found' });
+        }
+    });
+});
+
+
+
+
 
 //add treatment
 app.post('/treatment', (req, res) => {
@@ -245,6 +326,74 @@ app.post('/doctor', (req, res) => {
 
 
 
+//edit
+
+app.put('/treatment/:id', (req, res) => {
+    const treatmentID = req.params.id;
+    const { doctorID, patientID, status, start_treatment_date, last_treated_date, short_detail } = req.body;
+
+    const query = `UPDATE treatment SET doctorID = ?, patientID = ?, status = ?, start_treatment_date = ?, last_treated_date = ?, short_detail = ? WHERE id = ?`;
+
+    db.run(query, [doctorID, patientID, status, start_treatment_date, last_treated_date, short_detail, treatmentID], function(err) {
+        if (err) {
+            console.error('Error updating treatment:', err.message);
+            res.status(500).json({ error: err.message });
+            return;
+        }
+        res.json({ message: 'Treatment updated successfully', changes: this.changes });
+    });
+});
+
+// Edit Treatment Detail
+app.put('/treatment_detail/:id', (req, res) => {
+    const treatmentDetailID = req.params.id;
+    const { treatmentID, timestamp, next_treatment_date, dispensing_medicine, latest_treatment_detail } = req.body;
+
+    const query = `UPDATE treatment_detail SET treatmentID = ?, timestamp = ?, next_treatment_date = ?, dispensing_medicine = ?, latest_treatment_detail = ? WHERE id = ?`;
+
+    db.run(query, [treatmentID, timestamp, next_treatment_date, dispensing_medicine, latest_treatment_detail, treatmentDetailID], function(err) {
+        if (err) {
+            console.error('Error updating treatment detail:', err.message);
+            res.status(500).json({ error: err.message });
+            return;
+        }
+        res.json({ message: 'Treatment detail updated successfully', changes: this.changes });
+    });
+});
+
+// Edit Doctor
+app.put('/doctor/:id', (req, res) => {
+    const doctorID = req.params.id;
+    const { name, department, contact, date_of_birth, doctor_detail, medical_practice_license_number } = req.body;
+
+    const query = `UPDATE doctor SET name = ?, department = ?, contact = ?, date_of_birth = ?, doctor_detail = ?, medical_practice_license_number = ? WHERE id = ?`;
+
+    db.run(query, [name, department, contact, date_of_birth, doctor_detail, medical_practice_license_number, doctorID], function(err) {
+        if (err) {
+            console.error('Error updating doctor:', err.message);
+            res.status(500).json({ error: err.message });
+            return;
+        }
+        res.json({ message: 'Doctor updated successfully', changes: this.changes });
+    });
+});
+
+// Edit Patient
+app.put('/patient/:id', (req, res) => {
+    const patientID = req.params.id;
+    const { name, date_of_birth, blood_type, weight, height, contact, patient_detail } = req.body;
+
+    const query = `UPDATE patient SET name = ?, date_of_birth = ?, blood_type = ?, weight = ?, height = ?, contact = ?, patient_detail = ? WHERE id = ?`;
+
+    db.run(query, [name, date_of_birth, blood_type, weight, height, contact, patient_detail, patientID], function(err) {
+        if (err) {
+            console.error('Error updating patient:', err.message);
+            res.status(500).json({ error: err.message });
+            return;
+        }
+        res.json({ message: 'Patient updated successfully', changes: this.changes });
+    });
+});
 
 
 
@@ -291,15 +440,27 @@ app.delete('/patient/:id', (req, res) => {
 app.delete('/treatment/:id', (req, res) => {
     const treatmentID = req.params.id;
 
-    db.run(`DELETE FROM treatment WHERE id = ?`, treatmentID, function (err) {
+    // Delete all corresponding treatment_detail records first
+    db.run(`DELETE FROM treatment_detail WHERE treatmentID = ?`, treatmentID, function (err) {
         if (err) {
-            console.error('Error deleting treatment:', err.message);
-            res.status(500).json({ error: err.message });
+            console.error('Error deleting treatment details:', err.message);
+            res.status(500).json({ error: 'Error deleting related treatment details' });
             return;
         }
-        res.json({ message: 'Treatment deleted successfully' });
+
+        // Once treatment_detail records are deleted, delete the treatment record itself
+        db.run(`DELETE FROM treatment WHERE id = ?`, treatmentID, function (err) {
+            if (err) {
+                console.error('Error deleting treatment:', err.message);
+                res.status(500).json({ error: 'Error deleting treatment' });
+                return;
+            }
+
+            res.json({ message: 'Treatment and related treatment details deleted successfully' });
+        });
     });
 });
+
 
 // Route to delete a treatment_detail by id
 app.delete('/treatment-detail/:id', (req, res) => {
@@ -315,334 +476,6 @@ app.delete('/treatment-detail/:id', (req, res) => {
     });
 });
 
-// // Get a movies, studio_name
-// app.get('/movies_reviews', (req, res) => {
-//     db.all('SELECT movies.movie_name, studio.name FROM studio JOIN movies ON studio.id = movies.studioID', (err, rows) => {
-//         if (err) {
-//             res.status(500).send(err);
-//         } else {
-//             res.json(rows);
-//         }
-//     });
-// });
-
-// // CRUD For Movies
-// app.get('/movies', (req, res) => {
-//     db.all(`SELECT movies.id,
-//             movies.movie_name,
-//             category.name AS category_name,
-//             studio.name AS studio_name,
-//             movies.movie_detail, 
-//             movies.director,
-//             movies.flimmaking_funds, 
-//             movies.movie_income
-//             FROM movies 
-//             JOIN category ON movies.categoryID = category.id
-//             JOIN studio ON movies.studioID = studio.id`, (err, row) => {
-//         // db.all(`SELECT * FROM movies`, (err, row) => {
-//         if (err) {
-//             res.status(500).send(err);
-//         } else {
-//             res.json(row);
-//         }
-//     });
-// });
-
-// // route to get a movies by id
-// app.get('/movies/:id', (req, res) => {
-//     db.get('SELECT * FROM movies WHERE id = ?', req.params.id, (err, row) => {
-//         if (err) {
-//             res.status(500).send(err);
-//         } else {
-//             if (!row) {
-//                 res.status(404).send('Movies not found');
-//             } else {
-//                 res.json(row);
-//             }
-//         }
-//     });
-// });
-
-// // route to creata a new movies
-// app.post('/movies', (req, res) => {
-//     const movie = req.body;
-
-//     // Query ชื่อ category จากตาราง category
-//     db.get(`SELECT name FROM category WHERE id = ?`, [movie.categoryID], (err, category) => {
-//         if (err) {
-//             return res.status(500).send('Error fetching category');
-//         }
-
-//         // Query ชื่อ studio จากตาราง studio
-//         db.get(`SELECT name FROM studio WHERE id = ?`, [movie.studioID], (err, studio) => {
-//             if (err) {
-//                 return res.status(500).send('Error fetching studio');
-//             }
-
-//             // เมื่อได้ชื่อ category และ studio แล้วทำการ insert ข้อมูลลงในตาราง movies
-//             db.run(`INSERT INTO movies (movie_name, categoryID, studioID, movie_detail, director, flimmaking_funds, movie_income) 
-//                     VALUES (?, ?, ?, ?, ?, ?, ?)`, 
-//                 movie.movie_name, 
-//                 category.name,  // ใส่ชื่อ category แทน categoryID
-//                 studio.name,    // ใส่ชื่อ studio แทน studioID
-//                 movie.movie_detail, 
-//                 movie.director, 
-//                 movie.flimmaking_funds, 
-//                 movie.movie_income, 
-//                 function(err) {
-//                     if (err) {
-//                         res.status(500).send('Error inserting movie');
-//                     } else {
-//                         res.send(movie);
-//                     }
-//                 });
-//         });
-//     });
-// });
-
-
-// // route to update a movies
-// app.put('/movies/:id', (req, res) => {
-//     const movie = req.body;
-//     db.run('UPDATE movies SET movie_name = ?, categoryID = ?, studioID = ?, movie_detail = ?, director = ?, flimmaking_funds = ?, movie_income = ? WHERE id = ?', 
-//         movie.movie_name, movie.categoryID, movie.studioID, movie.movie_detail, movie.director, movie.flimmaking_funds, movie.movie_income, req.params.id, function(err) {
-//         if (err) {
-//             res.status(500).send(err);
-//         } else {
-//             res.send(movie);
-//         }
-//     });  
-// });
-
-// // route to delete a movies
-// app.delete('/movies/:id', (req, res) => {
-//     db.run('DELETE FROM movies WHERE id = ?', req.params.id, function(err) {
-//         if (err) {
-//             res.status(500).send(err);
-//         } else {
-//             res.send({});
-//         }
-//     });
-// });
-
-// // Get a movie_detail & reviews
-// app.get('/movie_detail&review/:id', (req, res) => {
-//     db.get(`SELECT 
-//             movies.movie_name,
-//             category.name AS category_name,
-//             studio.name AS studio_name,
-//             movies.movie_detail, 
-//             movies.director,
-//             movies.flimmaking_funds, 
-//             movies.movie_income, 
-//             review.reviewer, 
-//             review.review_detail, 
-//             review.overall_score
-//             FROM movies 
-//             JOIN review ON movies.id = review.movieID
-//             JOIN category ON movies.categoryID = category.id
-//             JOIN studio ON movies.studioID = studio.id
-//             WHERE movies.id = ?`, req.params.id, (err, row) => {
-//         if (err) {
-//             res.status(500).send(err);
-//         } else {
-//             if (!row) {
-//                 res.status(404).send('Movies not found');
-//             } else {
-//                 res.json(row);
-//             }
-//         }
-//     });
-// });
-
-// // CRUD For Review
-// app.get('/review', (req, res) => {
-//     db.all('SELECT * FROM review', (err, rows) => {
-//         if (err) {
-//             res.status(500).send(err);
-//         } else {
-//             res.json(rows);
-//         }
-//     });
-// });
-
-// // route to get a review by id
-// app.get('/review/:id', (req, res) => {
-//     db.get('SELECT * FROM review WHERE id = ?', req.params.id, (err, row) => {
-//         if (err) {
-//             res.status(500).send(err);
-//         } else {
-//             if (!row) {
-//                 res.status(404).send('review not found');
-//             } else {
-//                 res.json(row);
-//             }
-//         }
-//     });
-// });
-
-// // route to create a new review
-// app.post('/review', (req, res) => {
-//     const review = req.body;
-//     db.run('INSERT INTO review (movieID, review_detail, overall_score, reviewer) VALUES (?, ?, ?, ?)', 
-//             review.movieID, review.review_detail, review.overall_score, review.reviewer, req.params.id, function(err) {
-//         if (err) {
-//             res.status(500).send(err);
-//         } else {
-//             res.send(review);
-//         }
-//     });
-// });
-
-// // route to update a review
-// app.put('/review/:id', (req, res) => {
-//     const review = req.body;
-//     db.run('UPDATE review SET movieID = ?, review_detail = ?, overall_score = ?, reviewer = ? WHERE id = ?', 
-//         review.movieID, review.review_detail, review.overall_score, review.reviewer, req.params.id, function(err) {
-//         if (err) {
-//             res.status(500).send(err);
-//         } else {
-//             res.send(review);
-//         }
-//     });  
-// });
-
-// // route to delete a review
-// app.delete('/review/:id', (req, res) => {
-//     db.run('DELETE FROM review WHERE id = ?', req.params.id, function(err) {
-//         if (err) {
-//             res.status(500).send(err);
-//         } else {
-//             res.send({});
-//         }
-//     });
-// });
-
-// // CRUD For Category
-// app.get('/category', (req, res) => {
-//     db.all('SELECT * FROM category', (err, rows) => {
-//         if (err) {
-//             res.status(500).send(err);
-//         } else {
-//             res.json(rows);
-//         }
-//     });
-// });
-
-// // route to get a category by id
-// app.get('/category/:id', (req, res) => {
-//     db.get('SELECT * FROM category WHERE id = ?', req.params.id, (err, row) => {
-//         if (err) {
-//             res.status(500).send(err);
-//         } else {
-//             if (!row) {
-//                 res.status(404).send('category not found');
-//             } else {
-//                 res.json(row);
-//             }
-//         }
-//     });
-// });
-
-// // route to creata a new category
-// app.post('/category', (req, res) => {
-//     const category = req.body;
-//     db.run('INSERT INTO category (name, detail) VALUES (?, ?)', 
-//             category.name, category.detail, req.params.id, function(err) {
-//         if (err) {
-//             res.status(500).send(err);
-//         } else {
-//             res.send(category);
-//         }
-//     });
-// });
-
-// // route to update a category
-// app.put('/category/:id', (req, res) => {
-//     const category = req.body;
-//     db.run('UPDATE category SET name = ?, detail = ? WHERE id = ?', 
-//             category.name, category.detail, req.params.id, function(err) {
-//         if (err) {
-//             res.status(500).send(err);
-//         } else {
-//             res.send(category);
-//         }
-//     });  
-// });
-
-// // route to delete a category
-// app.delete('/category/:id', (req, res) => {
-//     db.run('DELETE FROM category WHERE id = ?', req.params.id, function(err) {
-//         if (err) {
-//             res.status(500).send(err);
-//         } else {
-//             res.send({});
-//         }
-//     });
-// });
-
-// // CRUD For Studio
-// app.get('/studio', (req, res) => {
-//     db.all('SELECT * FROM studio', (err, rows) => {
-//         if (err) {
-//             res.status(500).send(err);
-//         } else {
-//             res.json(rows);
-//         }
-//     });
-// });
-
-// // route to get a studio by id
-// app.get('/studio/:id', (req, res) => {
-//     db.get('SELECT * FROM studio WHERE id = ?', req.params.id, (err, row) => {
-//         if (err) {
-//             res.status(500).send(err);
-//         } else {
-//             if (!row) {
-//                 res.status(404).send('studio not found');
-//             } else {
-//                 res.json(row);
-//             }
-//         }
-//     });
-// });
-
-// // route to creata a new studio
-// app.post('/studio', (req, res) => {
-//     const studio = req.body;
-//     db.run('INSERT INTO studio (name, detail) VALUES (?, ?)', 
-//             studio.name, studio.detail, req.params.id, function(err) {
-//         if (err) {
-//             res.status(500).send(err);
-//         } else {
-//             res.send(studio);
-//         }
-//     });
-// });
-
-// // route to update a studio
-// app.put('/studio/:id', (req, res) => {
-//     const studio = req.body;
-//     db.run('UPDATE studio SET name = ?, detail = ? WHERE id = ?', 
-//         studio.name, studio.detail, req.params.id, function(err) {
-//         if (err) {
-//             res.status(500).send(err);
-//         } else {
-//             res.send(studio);
-//         }
-//     });  
-// });
-
-// // route to delete a studio
-// app.delete('/studio/:id', (req, res) => {
-//     db.run('DELETE FROM studio WHERE id = ?', req.params.id, function(err) {
-//         if (err) {
-//             res.status(500).send(err);
-//         } else {
-//             res.send({});
-//         }
-//     });
-// });
 
 const port = process.env.PORT || 3000;
 app.listen(port, () => console.log(`Example app listening at http://localhost:${port}`),)
