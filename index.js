@@ -187,7 +187,7 @@ app.get('/treatment-detail-edit/:id', (req, res) => {
     });
 });
 //get edit treatment
-app.get('/treatment/:id', (req, res) => {
+app.get('/treatment-edit/:id', (req, res) => {
     const treatmentID = req.params.id;
 
     const query = `SELECT * FROM treatment WHERE id = ?`;
@@ -207,7 +207,7 @@ app.get('/treatment/:id', (req, res) => {
     });
 });
 //get edit patient
-app.get('/patient/:id', (req, res) => {
+app.get('/patient-edit/:id', (req, res) => {
     const patientID = req.params.id;
 
     const query = `SELECT * FROM patient WHERE id = ?`;
@@ -228,7 +228,7 @@ app.get('/patient/:id', (req, res) => {
 });
 
 //get edit doctor
-app.get('/doctor/:id', (req, res) => {
+app.get('/doctor-edit/:id', (req, res) => {
     const doctorID = req.params.id;
 
     const query = `SELECT * FROM doctor WHERE id = ?`;
