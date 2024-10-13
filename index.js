@@ -137,6 +137,8 @@ app.get('/treatment-details/:treatmentID', (req, res) => {
         t.start_treatment_date,
         t.last_treated_date,
         t.short_detail,
+        t.patientID,
+        t.doctorID,
         p.name AS patient_name,
         d.name AS doctor_name
     FROM 
@@ -357,7 +359,7 @@ app.put('/treatment/:id', (req, res) => {
 });
 
 // Edit Treatment Detail
-app.put('/treatment_detail/:id', (req, res) => {
+app.put('/treatment-detail/:id', (req, res) => {
     const treatmentDetailID = req.params.id;
     const { treatmentID, timestamp, next_treatment_date, dispensing_medicine, latest_treatment_detail } = req.body;
 
