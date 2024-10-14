@@ -121,6 +121,50 @@ app.get('/treatment', (req, res) => {
     });
 });
 
+
+
+app.get('/doctor', (req, res) => {
+
+    const query = `SELECT * FROM doctor `;
+
+    db.all(query, [], (err, row) => {
+        if (err) {
+            console.error('Error retrieving doctor:', err.message);
+            res.status(500).json({ error: err.message });
+            return;
+        }
+
+        if (row) {
+            res.json(row);
+        } else {
+            res.status(404).json({ message: 'Doctor not found' });
+        }
+    });
+});
+
+
+
+app.get('/patient', (req, res) => {
+    const query = `SELECT * FROM patient `;
+
+    db.all(query, [], (err, row) => {
+        if (err) {
+            console.error('Error retrieving patient:', err.message);
+            res.status(500).json({ error: err.message });
+            return;
+        }
+
+        if (row) {
+            res.json(row);
+        } else {
+            res.status(404).json({ message: 'Patient not found' });
+        }
+    });
+});
+
+
+
+
 //get treatment detail
 app.get('/treatment-details/:treatmentID', (req, res) => {
     const treatmentID = req.params.treatmentID;
