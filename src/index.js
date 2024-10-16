@@ -3,7 +3,7 @@ const sqlite3 = require('sqlite3');
 const app = express();
 
 // Connect to the SQLite database
-const db = new sqlite3.Database('./Database/clinic.sqlite', (err) => {
+const db = new sqlite3.Database('../Database/clinic.sqlite', (err) => {
     if (err) {
         console.error('Error opening database:', err.message);
     } else {
